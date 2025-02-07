@@ -1,0 +1,63 @@
+import requests
+import json
+import pytest
+
+API_URL = "https://catfact.ninja/fact"
+
+def fetch_data():
+    response = requests.get(API_URL)
+
+    # Ensure we received a valid response
+    assert response.status_code == 200, f"Failed to fetch data: {response.status_code}"
+
+    data = response.json()
+
+    # Debug: Print response format
+    print(f"Fetched Data: {data}")
+
+    # Ensure the response contains the 'fact' key
+    assert isinstance(data, dict) and "fact" in data, f"Unexpected data format: {data}"
+
+    return data
+
+def save_to_json(data, filename="cat_fact.json"):
+    try:
+        # Open file and write JSON data
+        with open(filename, "w") as file:
+            json.dump(data, file, indent=4)
+            print(f"Data successfully written to {filename}")  # Debugging: Confirm data writing
+
+        # Verify that file is not empty after writing
+        with open(filename, "r") as file:
+            content = file.read()
+            if not content:  # Check if file is empty
+                raise ValueError("File is empty after writing.")
+            print(f"File content: {content}")  # Debugging: Print the content
+
+    except Exception as e:
+        print(f"Error during file saving: {e}")
+        raise  # Re-raise the exception after logging
+
+# Test using pytest
+def test_api_response():
+    """Test if API returns a valid JSON response"""
+    data = fetch_data()
+    assert isinstance(data, dict)
+    assert "fact" in data
+
+def test_json_saving():
+    """Test if data is correctly saved to JSON"""
+    data = fetch_data()
+    save_to_json(data)
+
+    with open("cat_fact.json", "r") as file:
+        saved_data = json.load(file)
+
+    assert data == saved_data
+
+# Run the tests only when this script is directly executed
+if __name__ == "__main__":
+    # Fetch and save data before testing
+    data = fetch_data()
+    save_to_json(data)
+    print("Cat fact fetched and saved successfully.")
